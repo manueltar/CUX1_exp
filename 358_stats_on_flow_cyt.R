@@ -77,6 +77,55 @@ Stats_function = function(option_list)
   cat(sprintf(as.character(summary(as.factor(Flow_cyt_data$Condition)))))
   cat("\n")
   
+  
+  Basal.df<-Flow_cyt_data[which(Flow_cyt_data$Condition == 'unst'),]
+  
+  cat("Basal.df_0\n")
+  cat(str(Basal.df))
+  cat("\n")
+  
+  cols<-colnames(Basal.df)[5:dim(Basal.df)[2]]
+  
+  cat("cols_0\n")
+  cat(str(cols))
+  cat("\n")
+  
+  Basal.df.dt<-data.table(Basal.df, key=c("Sample","Genotype"))
+  
+  
+  
+  Basal.df.addition <- as.data.frame(Basal.df.dt[, sapply(.SD, function(x) list(mean = mean(x))), .SDcols = cols, by = key(Basal.df.dt)], stringsAsFactors=F)
+  
+  colnames(Basal.df.addition)<-gsub("\\.mean","",colnames(Basal.df.addition))
+  
+  
+  
+  
+  cat("Basal.df.addition_0\n")
+  cat(str(Basal.df.addition))
+  cat("\n")
+  
+  Basal.df.addition_new_1 <- Basal.df.addition[rep(seq_len(nrow(Basal.df.addition)), each = 3), ]
+  
+  Basal.df.addition_new_1<-Basal.df.addition_new_1[order(Basal.df.addition_new_1$Sample,Basal.df.addition_new_1$Genotype),]
+  
+  
+  cat("Basal.df.addition_new_1_0\n")
+  cat(str(Basal.df.addition_new_1))
+  cat("\n")
+  
+  Basal.df.addition_new_1$Time<-'Basal'
+ 
+  Basal.df.addition_new_1$Condition<-rep(c("unst","PMA","Hemin"),(dim(Basal.df.addition_new_1)[1]/3))
+  
+  cat("Basal.df.addition_new_1_1\n")
+  cat(str(Basal.df.addition_new_1))
+  cat("\n")
+  
+  # ############################
+  # quit(status = 1)
+  
+  Flow_cyt_data<-rbind(Flow_cyt_data,Basal.df.addition_new_1)
   ##### Transform into ordered factors ----
   
   Flow_cyt_data$Genotype<-factor(Flow_cyt_data$Genotype,
@@ -84,7 +133,7 @@ Stats_function = function(option_list)
                                  ordered=T)
   
   Flow_cyt_data$Time<-factor(Flow_cyt_data$Time,
-                                 levels=c("24","96"),
+                                 levels=c("Basal","24","96"),
                                  ordered=T)
   
   Flow_cyt_data$Condition<-factor(Flow_cyt_data$Condition,
@@ -250,6 +299,20 @@ Stats_function = function(option_list)
         cat(sprintf(as.character(continuous_variable_sel)))
         cat("\n")
         
+        path5<-paste(out,continuous_variable_sel,'/', sep='')
+        
+        if (file.exists(path5)){
+          
+          
+          
+          
+        } else {
+          dir.create(file.path(path5))
+          
+        }
+        
+        
+        
         # indx.parameter_sel<-which(colnames(Flow_cyt_data_sel) == continuous_variable_sel)
         # 
         # 
@@ -269,7 +332,7 @@ Stats_function = function(option_list)
         
         #### model CD41+CD235- ----
         
-        full_model<-lmer(Flow_cyt_data_sel[,k] ~ 1 +
+        full_model<-lmer(Flow_cyt_data_sel[,k] ~ 1 + Genotype:Time +
                                   Genotype + Time + Condition +
                                   (1 + Genotype|Sample) + (1 + Genotype|Condition), data= Flow_cyt_data_sel)
         
@@ -280,6 +343,18 @@ Stats_function = function(option_list)
         # cat("\n")
         
         Summary_model<-summary(full_model)
+        
+        intermediate_model<-lmer(Flow_cyt_data_sel[,k] ~ 1 +
+                           Genotype + Time + Condition +
+                           (1 + Genotype|Sample) + (1 + Genotype|Condition), data= Flow_cyt_data_sel)
+        
+        check_intermediate_model<-isSingular(intermediate_model,  tol = 1e-4)
+        
+        # cat("check_intermediate_model\n")
+        # cat(str(check_intermediate_model))
+        # cat("\n")
+        
+        Summary_model<-summary(intermediate_model)
         
         # cat("Summary_model\n")
         # cat(str(Summary_model))
@@ -295,109 +370,124 @@ Stats_function = function(option_list)
         # cat(str(check_reduced_model))
         # cat("\n")
         
+        LRT_model_intermediate<-anova(reduced_model,intermediate_model)
         
-        LRT_model<-anova(reduced_model,full_model)
-        
-        cat("LRT_model\n")
-        cat(str(LRT_model))
+        cat("LRT_model_intermediate\n")
+        cat(str(LRT_model_intermediate))
         cat("\n")
         
-        if(continuous_variable_sel == 'CD41+' &
-           comparison_string == 'WT_Del')
+        LRT_model_full<-anova(intermediate_model,full_model)
+        
+        cat("LRT_model_full\n")
+        cat(str(LRT_model_full))
+        cat("\n")
+        
+        setwd(path5)
+        
+        write.table(LRT_model_full, file=paste("LRT_model_full_",comparison_string,".tsv",sep=''), sep="\t", quote=F)
+        
+        
+        write.table(LRT_model_intermediate, file=paste("LRT_model_intermediate_",comparison_string,".tsv",sep=''), sep="\t", quote=F)
+        
+        coefficients<-Summary_model$coefficients
+        
+        # cat("coefficients\n")
+        # cat(str(coefficients))
+        # cat("\n")
+        
+        write.table(coefficients, file=paste("coefficients_",comparison_string,".tsv",sep=''), sep="\t", quote=F)
+        
+        
+       
+        
+        # if(continuous_variable_sel == 'CD41+' &
+        #    comparison_string == 'WT_Del')
+        # {
+        #   cat("Summary_model\n")
+        #   cat(str(Summary_model))
+        #   cat("\n")
+        # 
+        #   quit(status = 1)
+        # 
+        # }
+        
+        #### GRAPH ----
+        
+        A<-summary(Summary_table_DEF_sel$Mean)
+        
+        
+        if(Condition_DEBUG == 1)
         {
-          # cat("Summary_model\n")
-          # cat(str(Summary_model))
-          # cat("\n")
-          
-          coefficients<-Summary_model$coefficients
-          
-          cat("coefficients\n")
-          cat(str(coefficients))
+          cat("A\n")
+          cat(sprintf(as.character(names(A))))
           cat("\n")
-          
-          setwd(out)
-          write.table(coefficients, file="coefficients_model_selected.tsv", sep="\t")
-          
-           
-          A<-summary(Summary_table_DEF_sel$Mean)
-          
-          
-          if(Condition_DEBUG == 1)
-          {
-            cat("A\n")
-            cat(sprintf(as.character(names(A))))
-            cat("\n")
-            cat(sprintf(as.character(A)))
-            cat("\n")
-          }
-          
-          
-          max_value<-A[6]
-          min_value<-A[1]
-          
-          
-          step<-round((max_value-min_value)/4,2)
-          
-          if(Condition_DEBUG == 1)
-          {
-            cat("max_value:min_value:step\n")
-            cat(sprintf(as.character(max_value)))
-            cat("\t")
-            cat(sprintf(as.character(min_value)))
-            cat("\t")
-            cat(sprintf(as.character(step)))
-            cat("\n")
-          }
-          
-          if(step == 0)
-          {
-            step<-2
-            breaks.Parameter<-sort(unique(c(0,seq(min_value,max_value, by=step),max_value)))
-            labels.Parameter<-as.character(round(breaks.Parameter,2))
-          }else{
-            breaks.Parameter<-sort(unique(c(0,seq(min_value,max_value, by=step),max_value)))
-            labels.Parameter<-as.character(round(breaks.Parameter,2))
-            
-          }
-          
-          # geom_line(aes(color=Condition), size=2)+
-
-            
-          g_line<-ggplot(Summary_table_DEF_sel, 
-                                 aes(x=Time,
-                                     y=Mean)) +
-            geom_point(aes(shape=Genotype,
-                           color=Condition,
-                           fill=Condition),size=3,stroke=2)+
-            geom_errorbar(aes(ymin=Mean-sd, ymax=Mean+sd,
-                              color=Condition), width=.2,
-                          position=position_dodge(0.05))+
-            theme_classic()+
-            scale_shape_manual(name = paste("Genotype","of","Clone",sep="\n"), values = c("WT"=15,"KI"=16,"Del"=17), breaks=c("WT","KI","Del"), drop=T) +
-            scale_color_manual(values=c('unst'="grey70", 'PMA'="brown", 'Hemin'="firebrick1"), drop=T)+
-            scale_fill_manual(values=c('unst'="grey70", 'PMA'="brown", 'Hemin'="firebrick1"), drop=T)+
-            scale_y_continuous(name=paste(continuous_variable_sel),
-                               breaks=breaks.Parameter,labels=labels.Parameter,
-                               limits=c(breaks.Parameter[1]-5,breaks.Parameter[length(breaks.Parameter)]+15))+
-            scale_x_discrete(name="Time")+
-            theme(axis.title.y=element_text(size=18, color="black", family="sans"),
-                  axis.title.x=element_blank(),
-                  axis.text.y=element_text(angle=0,size=14, color="black", family="sans"),
-                  axis.text.x=element_text(angle=0,size=14, color="black", family="sans"))+
-            theme(legend.position="right")+
-            ggeasy::easy_center_title()
-          
-          
-          
-          setwd(out)
-          
-          
-          svglite(paste("test_",continuous_variable_sel,'_',comparison_string,'.svg', sep =''))
-          print(g_line)
-          dev.off()
-          
-          quit(status = 1)
+          cat(sprintf(as.character(A)))
+          cat("\n")
         }
+        
+        
+        max_value<-A[6]
+        min_value<-A[1]
+        
+        
+        step<-round((max_value-min_value)/4,2)
+        
+        if(Condition_DEBUG == 1)
+        {
+          cat("max_value:min_value:step\n")
+          cat(sprintf(as.character(max_value)))
+          cat("\t")
+          cat(sprintf(as.character(min_value)))
+          cat("\t")
+          cat(sprintf(as.character(step)))
+          cat("\n")
+        }
+        
+        if(step == 0)
+        {
+          step<-2
+          breaks.Parameter<-sort(unique(c(0,seq(min_value,max_value, by=step),max_value)))
+          labels.Parameter<-as.character(round(breaks.Parameter,2))
+        }else{
+          breaks.Parameter<-sort(unique(c(0,seq(min_value,max_value, by=step),max_value)))
+          labels.Parameter<-as.character(round(breaks.Parameter,2))
+          
+        }
+        
+        g_line<-ggplot(Summary_table_DEF_sel, 
+                       aes(x=Time,
+                           y=Mean)) +
+          geom_point(aes(shape=Genotype,
+                         color=Condition,
+                         fill=Condition),size=3,stroke=2)+
+          geom_errorbar(aes(ymin=Mean-sd, ymax=Mean+sd,
+                            color=Condition), width=.2,
+                        position=position_dodge(0.05))+
+          theme_classic()+
+          scale_shape_manual(name = paste("Genotype","of","Clone",sep="\n"), values = c("WT"=15,"KI"=16,"Del"=17), breaks=c("WT","KI","Del"), drop=T) +
+          scale_color_manual(values=c('unst'="grey70", 'PMA'="brown", 'Hemin'="firebrick1"), drop=T)+
+          scale_fill_manual(values=c('unst'="grey70", 'PMA'="brown", 'Hemin'="firebrick1"), drop=T)+
+          scale_y_continuous(name=paste(continuous_variable_sel),
+                             breaks=breaks.Parameter,labels=labels.Parameter,
+                             limits=c(breaks.Parameter[1]-5,breaks.Parameter[length(breaks.Parameter)]+15))+
+          scale_x_discrete(name="Time")+
+          theme(axis.title.y=element_text(size=18, color="black", family="sans"),
+                axis.title.x=element_blank(),
+                axis.text.y=element_text(angle=0,size=14, color="black", family="sans"),
+                axis.text.x=element_text(angle=0,size=14, color="black", family="sans"))+
+          theme(legend.position="right")+
+          ggeasy::easy_center_title()
+        
+        
+        
+        setwd(path5)
+        
+        
+        svglite(paste("Graph",'_',comparison_string,'.svg', sep =''))
+        print(g_line)
+        dev.off()
+        
+        # quit(status = 1)
         
       }# k in 5:dim(Flow_cyt_data_sel)[2]
       
@@ -410,25 +500,7 @@ Stats_function = function(option_list)
   }#i in 1:length(Genotypes_array)
   
 
-  if(length(list_DEF) >0)
-  {
-    
-    df_FINAL = unique(as.data.frame(data.table::rbindlist(list_DEF, fill=T), stringsAsFactors=F))
-    
-    cat("df_FINAL_0\n")
-    cat(str(df_FINAL))
-    cat("\n")
-    
-    
-    setwd(out)
-    write.table(df_FINAL, file="Summary_mean_sd.tsv", sep="\t",quote=F,row.names = F)
-    
-    
-
-  }#length(list_DEF) >0
-  
-  # ####################################
-  # quit(status = 1)
+ 
  
 }
 
