@@ -1,7 +1,3 @@
-Failed to query server: Failed to activate service 'org.freedesktop.timedate1': timed out (service_start_timeout=25000ms)
-Warning message:
-In system("timedatectl", intern = TRUE) :
-  running command 'timedatectl' had status 1
 Loading required package: Matrix
 
 Attaching package: ‘Matrix’
@@ -753,20 +749,20 @@ Min. 1st Qu. Median Mean 3rd Qu. Max.
 max_value:min_value:step
 68219.3333333333	547	16918.08
    user  system elapsed 
- 10.626   0.285  11.028 
+ 11.550   0.343  12.015 
 There were 50 or more warnings (use warnings() to see the first 50)
 
 ------------------------------------------------------------
-Sender: LSF System <lsfadmin@node-10-5-3>
-Subject: Job 25282971: <stats_linear_mix_model_job> in cluster <farm5> Done
+Sender: LSF System <lsfadmin@node-12-7-4>
+Subject: Job 25283045: <stats_linear_mix_model_job> in cluster <farm5> Done
 
-Job <stats_linear_mix_model_job> was submitted from host <farm5-head1> by user <mt19> in cluster <farm5> at Thu Jun 15 15:34:40 2023
-Job was executed on host(s) <node-10-5-3>, in queue <normal>, as user <mt19> in cluster <farm5> at Thu Jun 15 15:34:40 2023
+Job <stats_linear_mix_model_job> was submitted from host <farm5-head1> by user <mt19> in cluster <farm5> at Thu Jun 15 15:38:12 2023
+Job was executed on host(s) <node-12-7-4>, in queue <normal>, as user <mt19> in cluster <farm5> at Thu Jun 15 15:38:13 2023
 </nfs/users/nfs_m/mt19> was used as the home directory.
 </lustre/scratch126/humgen/teams/soranzo/users/mt19/CUX1_experiment> was used as the working directory.
-Started at Thu Jun 15 15:34:40 2023
-Terminated at Thu Jun 15 15:35:23 2023
-Results reported at Thu Jun 15 15:35:23 2023
+Started at Thu Jun 15 15:38:13 2023
+Terminated at Thu Jun 15 15:38:33 2023
+Results reported at Thu Jun 15 15:38:33 2023
 
 Your job looked like:
 
@@ -779,16 +775,16 @@ Successfully completed.
 
 Resource usage summary:
 
-    CPU time :                                   15.51 sec.
-    Max Memory :                                 345 MB
-    Average Memory :                             200.13 MB
+    CPU time :                                   16.91 sec.
+    Max Memory :                                 348 MB
+    Average Memory :                             290.20 MB
     Total Requested Memory :                     4000.00 MB
-    Delta Memory :                               3655.00 MB
+    Delta Memory :                               3652.00 MB
     Max Swap :                                   -
-    Max Processes :                              5
-    Max Threads :                                7
-    Run time :                                   42 sec.
-    Turnaround time :                            43 sec.
+    Max Processes :                              3
+    Max Threads :                                5
+    Run time :                                   19 sec.
+    Turnaround time :                            21 sec.
 
 The output (if any) is above this job summary.
 
