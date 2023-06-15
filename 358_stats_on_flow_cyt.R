@@ -270,7 +270,7 @@ Stats_function = function(option_list)
         #### model CD41+CD235- ----
         
         full_model<-lmer(Flow_cyt_data_sel[,k] ~ 1 +
-                                  Genotype + Time + 
+                                  Genotype + Time + Condition +
                                   (1 + Genotype|Sample) + (1 + Genotype|Condition), data= Flow_cyt_data_sel)
         
         check_full_model<-isSingular(full_model,  tol = 1e-4)
@@ -286,7 +286,7 @@ Stats_function = function(option_list)
         # cat("\n")
         
         reduced_model<-lmer(Flow_cyt_data_sel[,k] ~ 1 +
-                                     Time + 
+                                     Time + Condition +
                                      (1 + Genotype|Sample) + (1 + Genotype|Condition), data= Flow_cyt_data_sel)
         
         check_reduced_model<-isSingular(reduced_model,  tol = 1e-4)
@@ -360,24 +360,30 @@ Stats_function = function(option_list)
             
           }
           
+          # geom_line(aes(color=Condition), size=2)+
+
+            
           g_line<-ggplot(Summary_table_DEF_sel, 
                                  aes(x=Time,
                                      y=Mean)) +
-            geom_line(aes(color=Condition), size=2)+
             geom_point(aes(shape=Genotype,
+                           color=Condition,
                            fill=Condition),size=3,stroke=2)+
+            geom_errorbar(aes(ymin=Mean-sd, ymax=Mean+sd,
+                              color=Condition), width=.2,
+                          position=position_dodge(0.05))+
             theme_classic()+
-            scale_shape_manual(name = paste("Genotype","of","Clone",sep="\n"), values = c("WT"=21,"KI"=22,"Del"=23), breaks=c("WT","KI","Del"), drop=T) +
+            scale_shape_manual(name = paste("Genotype","of","Clone",sep="\n"), values = c("WT"=15,"KI"=16,"Del"=17), breaks=c("WT","KI","Del"), drop=T) +
             scale_color_manual(values=c('unst'="grey70", 'PMA'="brown", 'Hemin'="firebrick1"), drop=T)+
             scale_fill_manual(values=c('unst'="grey70", 'PMA'="brown", 'Hemin'="firebrick1"), drop=T)+
             scale_y_continuous(name=paste(continuous_variable_sel),
                                breaks=breaks.Parameter,labels=labels.Parameter,
-                               limits=c(breaks.Parameter[1]-0.001,breaks.Parameter[length(breaks.Parameter)]+0.001))+
+                               limits=c(breaks.Parameter[1]-5,breaks.Parameter[length(breaks.Parameter)]+15))+
             scale_x_discrete(name="Time")+
             theme(axis.title.y=element_text(size=18, color="black", family="sans"),
                   axis.title.x=element_blank(),
                   axis.text.y=element_text(angle=0,size=14, color="black", family="sans"),
-                  axis.text.x=element_text(angle=45,size=12, hjust=1,color="black", family="sans"))+
+                  axis.text.x=element_text(angle=0,size=14, color="black", family="sans"))+
             theme(legend.position="right")+
             ggeasy::easy_center_title()
           
