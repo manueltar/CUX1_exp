@@ -363,9 +363,7 @@ Stats_function = function(option_list)
           g_line<-ggplot(Summary_table_DEF_sel, 
                                  aes(x=Time,
                                      y=Mean)) +
-            geom_line(aes(x=Time,
-                          y=Mean,
-                          color=Condition), size=2)+
+            geom_line(aes(color=Condition), size=2)+
             geom_point(aes(shape=Genotype,
                            fill=Condition),size=3,stroke=2)+
             theme_classic()+
