@@ -20,8 +20,6 @@ suppressMessages(library("ggeasy", lib.loc="/nfs/team151/software/manuel_R_libs_
 suppressMessages(library("sandwich", lib.loc="/nfs/team151/software/manuel_R_libs_4_1/"))
 suppressMessages(library("digest", lib.loc="/nfs/team151/software/manuel_R_libs_4_1/"))
 suppressMessages(library("ggforce", lib.loc="/nfs/team151/software/manuel_R_libs_4_1/"))
-library("lme4", lib.loc = "/nfs/team151/software/manuel_R_libs_4_1/")
-library("afex", lib.loc = "/nfs/team151/software/manuel_R_libs_4_1/")
 
 
 
@@ -31,6 +29,10 @@ opt = NULL
 
 Stats_function_non_compositional_data = function(option_list)
 {
+  library("lme4", lib.loc = "/nfs/team151/software/manuel_R_libs_4_1/")
+  library("afex", lib.loc = "/nfs/team151/software/manuel_R_libs_4_1/")
+  
+  
   opt_in = option_list
   opt <<- option_list
   
@@ -550,8 +552,8 @@ Stats_function_non_compositional_data = function(option_list)
 
           #### full model ----
 
-          full_model<-lmer(Flow_cyt_data_no_compositional_sel_condition_sel[,k] ~ 1 + Genotype:Time +
-                             Genotype + Time +
+          full_model<-lmer(Flow_cyt_data_no_compositional_sel_condition_sel[,k] ~ 1 + Genotype:as.numeric(Time) +
+                             Genotype + as.numeric(Time) +
                              (1 + 1|Sample), data= Flow_cyt_data_no_compositional_sel_condition_sel)
 
           check_full_model<-isSingular(full_model,  tol = 1e-4)
@@ -563,7 +565,7 @@ Stats_function_non_compositional_data = function(option_list)
           Summary_model<-summary(full_model)
 
           intermediate_model<-lmer(Flow_cyt_data_no_compositional_sel_condition_sel[,k] ~ 1 +
-                                     Genotype + Time +
+                                     Genotype + as.numeric(Time) +
                                      (1 + 1|Sample) , data= Flow_cyt_data_no_compositional_sel_condition_sel)
 
           check_intermediate_model<-isSingular(intermediate_model,  tol = 1e-4)
@@ -579,7 +581,7 @@ Stats_function_non_compositional_data = function(option_list)
           # cat("\n")
 
           reduced_model<-lmer(Flow_cyt_data_no_compositional_sel_condition_sel[,k] ~ 1 +
-                                Time +
+                                as.numeric(Time) +
                                 (1 + 1|Sample), data= Flow_cyt_data_no_compositional_sel_condition_sel)
 
           check_reduced_model<-isSingular(reduced_model,  tol = 1e-4)
@@ -795,6 +797,19 @@ graph_non_compositional_data = function(option_list)
     # 
     # aes(shape=Genotype,color=Genotype)
     
+    name_for_yaxis<-NULL
+    
+    if(parameter_array_sel == 'log_CD41_MFI')
+    {
+      
+      name_for_yaxis<-'log(CD41 MFI)'
+      
+    }
+    if(parameter_array_sel == 'log_CD41_GeoMFI')
+    {
+      name_for_yaxis<-'log(CD41 GeoMFI)'
+    }
+    
     graph<-ggplot(data=Flow_cyt_data, 
                   aes(x=Time, 
                       y=Flow_cyt_data[,indx.Parameter],
@@ -818,7 +833,7 @@ graph_non_compositional_data = function(option_list)
             legend.text=element_text(size=12,family="sans",colour="black"),
             axis.text.y=element_text(colour="black",size=10,family="sans"))+
       scale_x_discrete(name=NULL, drop=F)+
-      scale_y_continuous(name=paste(parameter_array_sel, collapse="_"),breaks=breaks.Rank,labels=labels.Rank, limits=c(breaks.Rank[1],breaks.Rank[length(breaks.Rank)]))+
+      scale_y_continuous(name=name_for_yaxis,breaks=breaks.Rank,labels=labels.Rank, limits=c(breaks.Rank[1],breaks.Rank[length(breaks.Rank)]))+
       theme(legend.position="right",legend.title=element_blank(), legend.text = element_text(size=10))+
       guides(fill=guide_legend(nrow=3,byrow=TRUE))
     
@@ -839,6 +854,10 @@ graph_non_compositional_data = function(option_list)
 
 Stats_function_compositional_data = function(option_list)
 {
+  library("carData", lib.loc = "/nfs/team151/software/manuel_R_libs_4_1/")
+  library("car", lib.loc = "/nfs/team151/software/manuel_R_libs_4_1/")
+  
+  
   opt_in = option_list
   opt <<- option_list
   
@@ -1308,14 +1327,22 @@ Stats_function_compositional_data = function(option_list)
       
       #### full model ----
       
-      full_lm<-lm(cbind(Double_negative,CD235_Pos,Double_positive,CD41_Pos) ~ Genotype + Time + Genotype:Time, data=Flow_cyt_data_compositional.m_sel_condition_sel_wide)
+      full_lm<-lm(cbind(Double_negative,CD235_Pos,Double_positive,CD41_Pos) ~ Genotype + as.numeric(Time) + Genotype:as.numeric(Time), data=Flow_cyt_data_compositional.m_sel_condition_sel_wide)
       
       
       Summary_full_model<-summary(full_lm)
       
-      # cat("Summary_full_model\n")
-      # cat(str(Summary_full_model))
-      # cat("\n")
+      Anova_full_model<-Anova(full_lm)
+      
+      cat("Anova_full_model\n")
+      cat(str(Anova_full_model))
+      cat("\n")
+      
+      
+      
+      
+      # quit(status = 1)
+      
       
       # coefficients_full<-Summary_full_model$coefficients
       # 
@@ -1323,7 +1350,7 @@ Stats_function_compositional_data = function(option_list)
       # cat(str(coefficients_full))
       # cat("\n")
       
-      intermediate_lm<-lm(cbind(Double_negative,CD235_Pos,Double_positive,CD41_Pos) ~ Genotype + Time, data=Flow_cyt_data_compositional.m_sel_condition_sel_wide)
+      intermediate_lm<-lm(cbind(Double_negative,CD235_Pos,Double_positive,CD41_Pos) ~ Genotype + as.numeric(Time), data=Flow_cyt_data_compositional.m_sel_condition_sel_wide)
       
       
       Summary_intermediate_model<-summary(intermediate_lm)
@@ -1338,7 +1365,7 @@ Stats_function_compositional_data = function(option_list)
       # cat(str(coefficients_intermediate))
       # cat("\n")
       # 
-      reduced_lm<-lm(cbind(Double_negative,CD235_Pos,Double_positive,CD41_Pos) ~ Time, data=Flow_cyt_data_compositional.m_sel_condition_sel_wide)
+      reduced_lm<-lm(cbind(Double_negative,CD235_Pos,Double_positive,CD41_Pos) ~ as.numeric(Time), data=Flow_cyt_data_compositional.m_sel_condition_sel_wide)
       
       
       Summary_reduced_model<-summary(reduced_lm)
@@ -1373,7 +1400,7 @@ Stats_function_compositional_data = function(option_list)
       
       
       
-      # write.table(coefficients, file=paste("coefficients_",Condition_array_sel,'_',comparison_string_sel,".tsv",sep=''), sep="\t", quote=F)
+      saveRDS(Anova_full_model, file=paste("Anova_full_model_",Condition_array_sel,'_',comparison_string_sel,".rds",sep=''))
       
       
       
@@ -1561,9 +1588,9 @@ main = function() {
                         option_list = option_list)
   opt <<- parse_args(parser)
   
-  # Stats_function_non_compositional_data(opt)
-  # graph_non_compositional_data(opt)
-  #Stats_function_compositional_data(opt)
+  Stats_function_non_compositional_data(opt)
+  graph_non_compositional_data(opt)
+  Stats_function_compositional_data(opt)
   graph_compositional_data(opt)
   
 }
