@@ -87,7 +87,7 @@ echo "#!/bin/bash"  >> $output
 
 #   ### stats_linear_mix_model_exp_20062023
 
-Rscript_stats_linear_mix_model_exp_20062023=/nfs/users/nfs_m/mt19/Scripts/R/363_stats_flow_cyte_exp_20062023.R
+Rscript_stats_linear_mix_model_exp_20062023=/nfs/users/nfs_m/mt19/Scripts/R/363_stats_flow_cyte_exp_20062023_v2.R
 
 type=$(echo "stats_linear_mix_model_exp_20062023")
 outfile_stats_linear_mix_model_exp_20062023=$(echo "$Log_files_path""outfile""_""$type"".out")
@@ -95,7 +95,8 @@ touch $outfile_stats_linear_mix_model_exp_20062023
 echo -n "" > $outfile_stats_linear_mix_model_exp_20062023
 name_stats_linear_mix_model_exp_20062023=$(echo "$type""_job")
 
-Flow_cyt_data=$(echo "/lustre/scratch126/humgen/teams/soranzo/users/mt19/CUX1_experiment/EXP_20062023/FlowCyt_results_for_model_EXPERIMENT_2006_2023.csv")
+#Flow_cyt_data=$(echo "/lustre/scratch126/humgen/teams/soranzo/users/mt19/CUX1_experiment/EXP_20062023/FlowCyt_results_for_model_EXPERIMENT_2006_2023.csv")
+Flow_cyt_data=$(echo "/lustre/scratch126/humgen/teams/soranzo/users/mt19/CUX1_experiment/EXP_20062023/FlowCyt_results_for_model_added_all_quadrants.csv")
 
 
 step_mem=$(expr $mem \* 1)
